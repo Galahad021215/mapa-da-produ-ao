@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Ordens de Produção</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .map-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .process-column {
+            width: 200px;
+            background-color: #eaeaea;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .process-column h3 {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px;
+            margin: 0 -10px 10px -10px;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .order-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .order-card button {
+            margin: 5px 2px;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .open-panel-button {
+            margin-top: 20px;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+
+        .delete-all-button {
+            margin-top: 20px;
+            background-color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mapa de Ordens de Produção</h1>
+
+        <!-- Importar Lista -->
+        <label for="orderList">Cole a lista de ordens (O.P. e Equipamento):</label>
+        <textarea id="orderList" placeholder="aqui"></textarea>
+        <button id="importButton">Importar Ordens</button>
+        <button class="open-panel-button" onclick="openPanel()">Abrir Painel de Visualização</button>
+        <button class="delete-all-button" onclick="deleteAllOrders()">Excluir Todas as Ordens</button>
+        <!-- Painel de Mapa -->
+        <div class="map-container" id="mapContainer"></div>
+
+    </div>
+
+    <script>
+        const processes = [
+            "Corte/Dobra","Caldeiraria", "Pintura", "Injeção","Montagem ",
+            "Refrigeração","Elétrica", "Teste","Embalagem"
+        ];
+
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+        function saveOrders() {
+            localStorage.setItem('orders', JSON.stringify(orders));
+        }
+
+        function renderMap() {
+            const mapContainer = document.getElementById('mapContainer');
+            mapContainer.innerHTML = '';
+
+            processes.forEach((process, index) => {
+                const column = document.createElement('div');
+                column.className = 'process-column';
+                column.innerHTML = `<h3>${process}</h3>`;
+                const ordersInProcess = orders.filter(order => order.process === index);
+
+                ordersInProcess.forEach(order => {
+                    const orderCard = document.createElement('div');
+                    orderCard.className = 'order-card';
+                    orderCard.innerHTML = `
+                        <strong>${order.id}</strong><br>
+                        ${order.equipment}<br>
+                        <button onclick="moveOrder('${order.id}', -1)">Voltar</button>
+                        <button onclick="moveOrder('${order.id}', 1)">Avançar</button>
+                        <button onclick="removeOrder('${order.id}')">Remover</button>
+                    `;
+                    column.appendChild(orderCard);
+                });
+
+                mapContainer.appendChild(column);
+            });
+        }
+
+        function moveOrder(orderId, direction) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.process = Math.max(0, Math.min(processes.length - 1, order.process + direction));
+                saveOrders();
+                renderMap();
+            }
+        }
+
+        function openPanel() {
+            window.open('visualizacao.html', '_blank');
+        }
+
+        function deleteAllOrders() {
+            orders = [];
+            localStorage.removeItem('orders');
+            renderMap();
+        }
+
+        function removeOrder(orderId) {
+            orders = orders.filter(order => order.id !== orderId);
+            saveOrders();
+            renderMap();
+        }
+
+        document.getElementById('importButton').onclick = () => {
+            const orderList = document.getElementById('orderList').value;
+            const lines = orderList.split('\n');
+
+            lines.forEach(line => {
+                const [id, equipment] = line.split('\t');
+                if (id && equipment) {
+                    orders.push({
+                        id: id.trim(),
+                        equipment: equipment.trim(),
+                        process: 0
+                    });
+                }
+            });
+
+            saveOrders();
+            renderMap();
+            document.getElementById('orderList').value = '';
+        };
+
+        renderMap();
+    </script>
+</body>
+</html>

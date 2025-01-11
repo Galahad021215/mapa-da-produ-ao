@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Visualização</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+            overflow-x: hidden; /* Impede a rolagem horizontal */
+        }
+
+        h1 {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 30px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr); /* 13 colunas de tamanho igual */
+            gap: 10px;
+            padding: 20px;
+            max-width: 100%;
+            overflow: hidden; /* Impede rolagem */
+        }
+
+        .process-column {
+            background-color: #eaeaea;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+        .process-column h3 {
+            background-color: #007bff;
+            color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            margin: 0 0 10px;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        .order-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .order-card strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1><strong>Painel de Visualização de O.P.s</strong></h1>
+
+    <div class="container" id="processColumns"></div>
+
+    <script>
+        const processes = [
+           "Corte/Dobra","Caldeiraria", "Pintura", "Injeção","Montagem ",
+            "Refrigeração","Elétrica", "Teste","Embalagem"
+        ];
+
+        const orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+        function renderColumns() {
+            const container = document.getElementById('processColumns');
+            container.innerHTML = '';
+
+            processes.forEach((process, index) => {
+                const column = document.createElement('div');
+                column.className = 'process-column';
+                column.innerHTML = `<h3>${process}</h3>`;
+
+                const ordersInProcess = orders.filter(order => order.process === index);
+
+                ordersInProcess.forEach(order => {
+                    const orderCard = document.createElement('div');
+                    orderCard.className = 'order-card';
+                    orderCard.innerHTML = `
+                        <strong>${order.id}</strong>
+                    `;
+                    column.appendChild(orderCard);
+                });
+
+                container.appendChild(column);
+            });
+        }
+
+        renderColumns();
+    </script>
+</body>
+</html>
