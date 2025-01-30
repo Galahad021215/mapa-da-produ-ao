@@ -3,152 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Visualização</title>
+    <title>Mapa de Ordens de Produção</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
-            color: #333;
-            overflow-x: hidden; /* Impede a rolagem horizontal */
+            color: #080301;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow-x: auto;
         }
 
         h1 {
             text-align: center;
-            margin: 10px 0;
             font-size: 2rem;
         }
 
-        .container {
-            display: grid;
-            grid-template-columns: repeat(13, 1fr); /* 13 colunas de tamanho igual */
+        .map-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
             gap: 10px;
-            padding: 20px;
-            max-width: 100%;
-            overflow: hidden; /* Impede rolagem */
+            margin: 20px 0;
         }
 
         .process-column {
-            background-color: #eaeaea;
+            flex: 1 1 200px;
+            background-color: #b7ccddba;
             padding: 10px;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            height: 100%;
+            text-align: center;
+            min-width: 150px;
+            box-sizing: border-box;
         }
 
         .process-column h3 {
             background-color: #007bff;
             color: #fff;
-            padding: 8px;
-            border-radius: 5px;
-            margin: 0 0 10px;
-            text-align: center;
-            font-size: 1rem;
+            padding: 5px;
+            margin: 0 -10px 10px -10px;
+            border-radius: 5px 5px 0 0;
+            font-size: 1.1rem;
         }
 
         .order-card {
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 5px;
-            padding: 8px;
-            margin-bottom: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0  2px 2px 2px #02fdd3;
+            text-align: left;
             font-size: 0.9rem;
+            transition: border 0.3s;
         }
 
-        .order-card strong {
+        .order-card button {
+            margin: 5px 2px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            margin: 10px 0;
+            resize: none;
+            font-size: 1rem;
+            padding: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .open-panel-button {
+            margin-top: 20px;
             display: block;
-            margin-bottom: 5px;
+            width: 100%;
+            text-align: center;
         }
 
-        /* Responsividade */
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: repeat(10, 1fr); /* Ajuste para telas menores */
-            }
-
-            .process-column h3 {
-                font-size: 0.9rem;
-            }
-
-            .order-card {
-                font-size: 0.8rem;
-            }
+        .delete-all-button {
+            margin-top: 20px;
+            background-color: #d9534f;
         }
 
         @media (max-width: 768px) {
             .container {
-                grid-template-columns: repeat(6, 1fr); /* Menos colunas para telas ainda menores */
-            }
-
-            .process-column h3 {
-                font-size: 0.8rem;
-            }
-
-            .order-card {
-                font-size: 0.7rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                grid-template-columns: repeat(3, 1fr); /* 3 colunas para dispositivos móveis */
+                padding: 10px;
             }
 
             h1 {
                 font-size: 1.5rem;
             }
 
-            .process-column h3 {
-                font-size: 0.7rem;
+            .process-column {
+                flex: 1 1 100%;
             }
 
             .order-card {
-                font-size: 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            textarea {
+                font-size: 0.9rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.2rem;
+            }
+
+            .order-card button {
+                font-size: 0.7rem;
+            }
+
+            textarea {
+                font-size: 0.8rem;
             }
         }
     </style>
 </head>
 <body>
-    <h1><strong>Painel de Visualização de O.P.s</strong></h1>
+    <div class="container">
+        <h1>Mapa de Ordens de Produção</h1>
 
-    <div class="container" id="processColumns"></div>
+        <!-- Campo de busca -->
+        <label for="searchOp">Buscar Ordem de Produção (O.P.):</label>
+        <input type="text" id="searchOp" placeholder="Digite o número da O.P.">
+        <button onclick="searchOrder()">Buscar</button>
+
+        <!-- Importar Lista -->
+        <label for="orderList">Cole a lista de ordens (O.P. e Equipamento):</label>
+        <textarea id="orderList" placeholder="Cole aqui"></textarea>
+        <button id="importButton">Importar Ordens</button>
+        <button class="open-panel-button" onclick="openPanel()">Abrir Painel de Visualização</button>
+        <button class="delete-all-button" onclick="deleteAllOrders()">Excluir Todas as Ordens</button>
+
+        <!-- Painel de Mapa -->
+        <div class="map-container" id="mapContainer"></div>
+    </div>
 
     <script>
         const processes = [
-            "Corte/Dobra", "Caldeiraria", "Pintura", "Injeção", "Montagem",
-            "Refrigeração", "Elétrica", "Teste", "Embalagem"
+            "Projeto", "Corte/Dobra", "Caldeiraria", "Pintura", "Montagem","Injeção", 
+            "Refrigeração", "Elétrica", "Suporte","Teste", "Finalizado"
         ];
 
-        const orders = JSON.parse(localStorage.getItem('orders')) || [];
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
 
-        function renderColumns() {
-            const container = document.getElementById('processColumns');
-            container.innerHTML = '';
+        function saveOrders() {
+            localStorage.setItem('orders', JSON.stringify(orders));
+        }
+
+        function renderMap() {
+            const mapContainer = document.getElementById('mapContainer');
+            mapContainer.innerHTML = '';
 
             processes.forEach((process, index) => {
                 const column = document.createElement('div');
                 column.className = 'process-column';
                 column.innerHTML = `<h3>${process}</h3>`;
-
                 const ordersInProcess = orders.filter(order => order.process === index);
 
                 ordersInProcess.forEach(order => {
                     const orderCard = document.createElement('div');
                     orderCard.className = 'order-card';
                     orderCard.innerHTML = `
-                        <strong>${order.id}</strong>
+                        <strong>${order.id}</strong><br>
+                        ${order.equipment}<br>
+                        <select onchange="changeProcess('${order.id}', this.value)">
+                            ${processes.map((p, i) => `<option value="${i}" ${order.process === i ? 'selected' : ''}>${p}</option>`).join('')}
+                        </select><br>
+                        <button onclick="moveOrder('${order.id}', -1)">Voltar</button>
+                        <button onclick="moveOrder('${order.id}', 1)">Avançar</button>
+                        <button onclick="removeOrder('${order.id}')">Remover</button>
                     `;
                     column.appendChild(orderCard);
                 });
 
-                container.appendChild(column);
+                mapContainer.appendChild(column);
             });
         }
 
-        renderColumns();
+        function searchOrder() {
+            const searchValue = document.getElementById('searchOp').value.trim();
+            if (!searchValue) {
+                alert('Por favor, insira o número da O.P.');
+                return;
+            }
+
+            const orderCard = Array.from(document.querySelectorAll('.order-card')).find(card => 
+                card.innerHTML.includes(`<strong>${searchValue}</strong>`)
+            );
+
+            if (orderCard) {
+                orderCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                orderCard.style.border = '8px solid red';
+                setTimeout(() => orderCard.style.border = '1px solid #ddd', 2000);
+            } else {
+                alert('O.P. não encontrada.');
+            }
+        }
+
+        function changeProcess(orderId, processIndex) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.process = parseInt(processIndex);
+                saveOrders();
+                renderMap();
+            }
+        }
+
+        function moveOrder(orderId, direction) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.process = Math.max(0, Math.min(processes.length - 1, order.process + direction));
+                saveOrders();
+                renderMap();
+            }
+        }
+
+        function openPanel() {
+            window.open('visualizacao.html', '_blank');
+        }
+
+        function deleteAllOrders() {
+            orders = [];
+            localStorage.removeItem('orders');
+            renderMap();
+        }
+
+        function removeOrder(orderId) {
+            orders = orders.filter(order => order.id !== orderId);
+            saveOrders();
+            renderMap();
+        }
+
+        document.getElementById('importButton').onclick = () => {
+            const orderList = document.getElementById('orderList').value;
+            const lines = orderList.split('\n');
+
+            lines.forEach(line => {
+                const [id, equipment] = line.split('\t');
+                if (id && equipment) {
+                    orders.push({
+                        id: id.trim(),
+                        equipment: equipment.trim(),
+                        process: 0
+                    });
+                }
+            });
+
+            saveOrders();
+            renderMap();
+            document.getElementById('orderList').value = '';
+        };
+
+        renderMap();
     </script>
 </body>
 </html>
