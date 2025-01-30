@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Visualização</title>
+    <title>Abrir Painel de Visualização</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,7 +17,14 @@
             box-sizing: border-box;
         }
 
-        .open-panel-button {
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .open-button {
             padding: 15px 30px;
             background-color: #007bff;
             color: #fff;
@@ -28,19 +35,29 @@
             transition: background-color 0.3s ease;
         }
 
-        .open-panel-button:hover {
+        .open-button:hover {
             background-color: #0056b3;
+        }
+
+        .description {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #555;
         }
     </style>
 </head>
 <body>
-    <button class="open-panel-button" id="openPanelButton">Abrir Painel de Visualização</button>
 
-    <script type="module">
-        document.getElementById('openPanelButton').onclick = () => {
-            alert('Abrir painel de visualização!');
-            // Aqui você pode adicionar o código para abrir o painel de visualização
-        };
+    <div class="button-container">
+        <button class="open-button" onclick="openPanel()">Abrir Painel de Visualização</button>
+        <p class="description">Clique no botão para abrir o painel de ordens de produção.</p>
+    </div>
+
+    <script>
+        function openPanel() {
+            window.location.href = "painel.html";  // Altere o caminho se necessário
+        }
     </script>
+
 </body>
 </html>
