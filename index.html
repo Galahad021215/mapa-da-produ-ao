@@ -163,62 +163,25 @@
         <label for="orderList">Cole a lista de ordens (O.P. e Equipamento):</label>
         <textarea id="orderList" placeholder="Cole aqui"></textarea>
         <button id="importButton">Importar Ordens</button>
-        <button class="open-panel-button" id="openPanelButton">Abrir Painel de Visualização</button>
-        <button class="delete-all-button" id="deleteAllButton">Excluir Todas as Ordens</button>
+        <button class="open-panel-button" onclick="openPanel()">Abrir Painel de Visualização</button>
+        <button class="delete-all-button" onclick="deleteAllOrders()">Excluir Todas as Ordens</button>
 
         <!-- Painel de Mapa -->
         <div class="map-container" id="mapContainer"></div>
     </div>
 
-    <script type="module">
-        // Importar as funções necessárias do Firebase SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-app.js";
-        import { getDatabase, ref, get, set, remove, child } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-database.js";
-
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDvGgVaIOFijnW2Fz0JrQ41aIxS6kQcjuk",
-            authDomain: "painel-produ.firebaseapp.com",
-            databaseURL: "https://painel-produ-default-rtdb.firebaseio.com",
-            projectId: "painel-produ",
-            storageBucket: "painel-produ.firebasestorage.app",
-            messagingSenderId: "691465554378",
-            appId: "1:691465554378:web:f5e0f22e5b04a03c342733"
-        };
-
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        // Lista de processos
+    <script>
         const processes = [
             "Projeto", "Corte/Dobra", "Caldeiraria", "Pintura", "Montagem","Injeção", 
             "Refrigeração", "Elétrica", "Suporte","Teste", "Finalizado"
         ];
 
-        // Carregar ordens do Firebase
-        function loadOrders() {
-            const ordersRef = ref(database, 'orders');
-            get(ordersRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    orders = Object.values(snapshot.val());
-                    renderMap();
-                } else {
-                    console.log("Nenhuma ordem encontrada.");
-                    orders = [];
-                }
-            }).catch((error) => {
-                console.error(error);
-            });
-        }
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
 
-        // Salvar ordens no Firebase
         function saveOrders() {
-            const ordersRef = ref(database, 'orders');
-            set(ordersRef, orders);
+            localStorage.setItem('orders', JSON.stringify(orders));
         }
 
-        // Renderizar mapa de ordens
         function renderMap() {
             const mapContainer = document.getElementById('mapContainer');
             mapContainer.innerHTML = '';
@@ -249,7 +212,6 @@
             });
         }
 
-        // Buscar ordem de produção
         function searchOrder() {
             const searchValue = document.getElementById('searchOp').value.trim();
             if (!searchValue) {
@@ -270,7 +232,6 @@
             }
         }
 
-        // Alterar processo de uma ordem
         function changeProcess(orderId, processIndex) {
             const order = orders.find(o => o.id === orderId);
             if (order) {
@@ -280,7 +241,6 @@
             }
         }
 
-        // Mover ordem
         function moveOrder(orderId, direction) {
             const order = orders.find(o => o.id === orderId);
             if (order) {
@@ -290,27 +250,22 @@
             }
         }
 
-        // Abrir painel de visualização
         function openPanel() {
             window.open('visualizacao.html', '_blank');
         }
 
-        // Excluir todas as ordens
         function deleteAllOrders() {
             orders = [];
-            const ordersRef = ref(database, 'orders');
-            remove(ordersRef);
+            localStorage.removeItem('orders');
             renderMap();
         }
 
-        // Remover uma ordem
         function removeOrder(orderId) {
             orders = orders.filter(order => order.id !== orderId);
             saveOrders();
             renderMap();
         }
 
-        // Importar ordens
         document.getElementById('importButton').onclick = () => {
             const orderList = document.getElementById('orderList').value;
             const lines = orderList.split('\n');
@@ -331,13 +286,7 @@
             document.getElementById('orderList').value = '';
         };
 
-        // Carregar ordens ao iniciar
-        let orders = [];
-        loadOrders();
-
-        // Garantir que as funções estejam acessíveis
-        document.getElementById('openPanelButton').onclick = openPanel;
-        document.getElementById('deleteAllButton').onclick = deleteAllOrders;
+        renderMap();
     </script>
 </body>
 </html>
