@@ -39,7 +39,7 @@
 
         .process-column {
             flex: 1 1 200px;
-            background-color: #eaeaea;
+            background-color: #b7ccddba;
             padding: 10px;
             border-radius: 5px;
             text-align: center;
@@ -62,9 +62,10 @@
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0  2px 2px 2px #02fdd3;
             text-align: left;
             font-size: 0.9rem;
+            transition: border 0.3s;
         }
 
         .order-card button {
@@ -153,29 +154,71 @@
     <div class="container">
         <h1>Mapa de Ordens de Produção</h1>
 
+        <!-- Campo de busca -->
+        <label for="searchOp">Buscar Ordem de Produção (O.P.):</label>
+        <input type="text" id="searchOp" placeholder="Digite o número da O.P.">
+        <button onclick="searchOrder()">Buscar</button>
+
         <!-- Importar Lista -->
         <label for="orderList">Cole a lista de ordens (O.P. e Equipamento):</label>
         <textarea id="orderList" placeholder="Cole aqui"></textarea>
         <button id="importButton">Importar Ordens</button>
-        <button class="open-panel-button" onclick="openPanel()">Abrir Painel de Visualização</button>
-        <button class="delete-all-button" onclick="deleteAllOrders()">Excluir Todas as Ordens</button>
+        <button class="open-panel-button" id="openPanelButton">Abrir Painel de Visualização</button>
+        <button class="delete-all-button" id="deleteAllButton">Excluir Todas as Ordens</button>
 
         <!-- Painel de Mapa -->
         <div class="map-container" id="mapContainer"></div>
     </div>
 
-    <script>
+    <script type="module">
+        // Importar as funções necessárias do Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-app.js";
+        import { getDatabase, ref, get, set, remove, child } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-database.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvGgVaIOFijnW2Fz0JrQ41aIxS6kQcjuk",
+            authDomain: "painel-produ.firebaseapp.com",
+            databaseURL: "https://painel-produ-default-rtdb.firebaseio.com",
+            projectId: "painel-produ",
+            storageBucket: "painel-produ.firebasestorage.app",
+            messagingSenderId: "691465554378",
+            appId: "1:691465554378:web:f5e0f22e5b04a03c342733"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Lista de processos
         const processes = [
-            "Corte/Dobra", "Caldeiraria", "Pintura", "Injeção", "Montagem",
-            "Refrigeração", "Elétrica", "Teste", "Embalagem"
+            "Projeto", "Corte/Dobra", "Caldeiraria", "Pintura", "Montagem","Injeção", 
+            "Refrigeração", "Elétrica", "Suporte","Teste", "Finalizado"
         ];
 
-        let orders = JSON.parse(localStorage.getItem('orders')) || [];
-
-        function saveOrders() {
-            localStorage.setItem('orders', JSON.stringify(orders));
+        // Carregar ordens do Firebase
+        function loadOrders() {
+            const ordersRef = ref(database, 'orders');
+            get(ordersRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    orders = Object.values(snapshot.val());
+                    renderMap();
+                } else {
+                    console.log("Nenhuma ordem encontrada.");
+                    orders = [];
+                }
+            }).catch((error) => {
+                console.error(error);
+            });
         }
 
+        // Salvar ordens no Firebase
+        function saveOrders() {
+            const ordersRef = ref(database, 'orders');
+            set(ordersRef, orders);
+        }
+
+        // Renderizar mapa de ordens
         function renderMap() {
             const mapContainer = document.getElementById('mapContainer');
             mapContainer.innerHTML = '';
@@ -206,6 +249,28 @@
             });
         }
 
+        // Buscar ordem de produção
+        function searchOrder() {
+            const searchValue = document.getElementById('searchOp').value.trim();
+            if (!searchValue) {
+                alert('Por favor, insira o número da O.P.');
+                return;
+            }
+
+            const orderCard = Array.from(document.querySelectorAll('.order-card')).find(card => 
+                card.innerHTML.includes(`<strong>${searchValue}</strong>`)
+            );
+
+            if (orderCard) {
+                orderCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                orderCard.style.border = '8px solid red';
+                setTimeout(() => orderCard.style.border = '1px solid #ddd', 2000);
+            } else {
+                alert('O.P. não encontrada.');
+            }
+        }
+
+        // Alterar processo de uma ordem
         function changeProcess(orderId, processIndex) {
             const order = orders.find(o => o.id === orderId);
             if (order) {
@@ -215,6 +280,7 @@
             }
         }
 
+        // Mover ordem
         function moveOrder(orderId, direction) {
             const order = orders.find(o => o.id === orderId);
             if (order) {
@@ -224,22 +290,27 @@
             }
         }
 
+        // Abrir painel de visualização
         function openPanel() {
             window.open('visualizacao.html', '_blank');
         }
 
+        // Excluir todas as ordens
         function deleteAllOrders() {
             orders = [];
-            localStorage.removeItem('orders');
+            const ordersRef = ref(database, 'orders');
+            remove(ordersRef);
             renderMap();
         }
 
+        // Remover uma ordem
         function removeOrder(orderId) {
             orders = orders.filter(order => order.id !== orderId);
             saveOrders();
             renderMap();
         }
 
+        // Importar ordens
         document.getElementById('importButton').onclick = () => {
             const orderList = document.getElementById('orderList').value;
             const lines = orderList.split('\n');
@@ -260,7 +331,13 @@
             document.getElementById('orderList').value = '';
         };
 
-        renderMap();
+        // Carregar ordens ao iniciar
+        let orders = [];
+        loadOrders();
+
+        // Garantir que as funções estejam acessíveis
+        document.getElementById('openPanelButton').onclick = openPanel;
+        document.getElementById('deleteAllButton').onclick = deleteAllOrders;
     </script>
 </body>
 </html>
