@@ -3,62 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abrir Painel de Visualização</title>
+    <title>Mapa de Ordens de Produção</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            color: #080301;
             box-sizing: border-box;
         }
 
-        .button-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
+        .container {
+            max-width: 100%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow-x: auto;
         }
 
-        .open-button {
-            padding: 15px 30px;
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .map-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .process-column {
+            flex: 1 1 200px;
+            background-color: #b7ccddba;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            min-width: 150px;
+            box-sizing: border-box;
+        }
+
+        .process-column h3 {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px;
+            margin: 0 -10px 10px -10px;
+            border-radius: 5px 5px 0 0;
+            font-size: 1.1rem;
+        }
+
+        .order-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0  2px 2px 2px #02fdd3;
+            text-align: left;
+            font-size: 0.9rem;
+            transition: border 0.3s;
+        }
+
+        .order-card button {
+            margin: 5px 2px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            margin: 10px 0;
+            resize: none;
+            font-size: 1rem;
+            padding: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
             background-color: #007bff;
             color: #fff;
             border: none;
             border-radius: 5px;
-            font-size: 1.2rem;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            font-size: 1rem;
         }
 
-        .open-button:hover {
+        button:hover {
             background-color: #0056b3;
         }
 
-        .description {
+        .open-panel-button {
             margin-top: 20px;
-            font-size: 1.2rem;
-            color: #555;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+
+        .delete-all-button {
+            margin-top: 20px;
+            background-color: #d9534f;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .process-column {
+                flex: 1 1 100%;
+            }
+
+            .order-card {
+                font-size: 0.8rem;
+            }
+
+            textarea {
+                font-size: 0.9rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.2rem;
+            }
+
+            .order-card button {
+                font-size: 0.7rem;
+            }
+
+            textarea {
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Mapa de Ordens de Produção</h1>
 
-    <div class="button-container">
-        <button class="open-button" onclick="openPanel()">Abrir Painel de Visualização</button>
-        <p class="description">Clique no botão para abrir o painel de ordens de produção.</p>
+        <!-- Campo de busca -->
+        <label for="searchOp">Buscar Ordem de Produção (O.P.):</label>
+        <input type="text" id="searchOp" placeholder="Digite o número da O.P.">
+        <button id="searchButton">Buscar</button>
+
+        <!-- Importar Lista -->
+        <label for="orderList">Cole a lista de ordens (O.P. e Equipamento):</label>
+        <textarea id="orderList" placeholder="Cole aqui"></textarea>
+        <button id="importButton">Importar Ordens</button>
+        <button class="open-panel-button" id="openPanelButton">Abrir Painel de Visualização</button>
+        <button class="delete-all-button" id="deleteAllButton">Excluir Todas as Ordens</button>
+
+        <!-- Painel de Mapa -->
+        <div class="map-container" id="mapContainer"></div>
     </div>
 
-    <script>
-        function openPanel() {
-            window.location.href = "painel.html";  // Altere o caminho se necessário
+    <script type="module">
+        // Importar as funções necessárias do Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-app.js";
+        import { getDatabase, ref, get, set, remove, child } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-database.js";
+    
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvGgVaIOFijnW2Fz0JrQ41aIxS6kQcjuk",
+            authDomain: "painel-produ.firebaseapp.com",
+            databaseURL: "https://painel-produ-default-rtdb.firebaseio.com",
+            projectId: "painel-produ",
+            storageBucket: "painel-produ.firebasestorage.app",
+            messagingSenderId: "691465554378",
+            appId: "1:691465554378:web:f5e0f22e5b04a03c342733"
+        };
+    
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+    
+        // Lista de processos
+        const processes = [
+            "Projeto", "Corte/Dobra", "Caldeiraria", "Pintura", "Montagem", "Injeção", 
+            "Refrigeração", "Elétrica", "Suporte", "Teste", "Finalizado"
+        ];
+    
+        // Carregar ordens do Firebase
+        function loadOrders() {
+            const ordersRef = ref(database, 'orders');
+            get(ordersRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    orders = Object.values(snapshot.val());
+                    renderMap();
+                } else {
+                    console.log("Nenhuma ordem encontrada.");
+                    orders = [];
+                }
+            }).catch((error) => {
+                console.error(error);
+            });
         }
+    
+        // Salvar ordens no Firebase
+        function saveOrders() {
+            const ordersRef = ref(database, 'orders');
+            set(ordersRef, orders);
+        }
+    
+        // Renderizar mapa de ordens
+        function renderMap() {
+            const mapContainer = document.getElementById('mapContainer');
+            mapContainer.innerHTML = '';
+    
+            processes.forEach((process, index) => {
+                const column = document.createElement('div');
+                column.className = 'process-column';
+                column.innerHTML = `<h3>${process}</h3>`;
+                const ordersInProcess = orders.filter(order => order.process === index);
+    
+                ordersInProcess.forEach(order => {
+                    const orderCard = document.createElement('div');
+                    orderCard.className = 'order-card';
+                    orderCard.innerHTML = `
+                        <strong>${order.id}</strong><br>
+                        ${order.equipment}<br>
+                        <select onchange="changeProcess('${order.id}', this.value)">
+                            ${processes.map((p, i) => `<option value="${i}" ${order.process === i ? 'selected' : ''}>${p}</option>`).join('')}
+                        </select><br>
+                        <button onclick="moveOrder('${order.id}', -1)">Voltar</button>
+                        <button onclick="moveOrder('${order.id}', 1)">Avançar</button>
+                        <button onclick="removeOrder('${order.id}')">Remover</button>
+                    `;
+                    column.appendChild(orderCard);
+                });
+    
+                mapContainer.appendChild(column);
+            });
+        }
+    
+        // Buscar ordem de produção
+        function searchOrder() {
+            const searchValue = document.getElementById('searchOp').value.trim();
+            if (!searchValue) {
+                alert('Por favor, insira o número da O.P.');
+                return;
+            }
+    
+            const orderCard = Array.from(document.querySelectorAll('.order-card')).find(card => 
+                card.innerHTML.includes(`<strong>${searchValue}</strong>`)
+            );
+    
+            if (orderCard) {
+                orderCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                orderCard.style.border = '8px solid red';
+                setTimeout(() => orderCard.style.border = '1px solid #ddd', 2000);
+            } else {
+                alert('O.P. não encontrada.');
+            }
+        }
+    
+        // Alterar processo de uma ordem
+        function changeProcess(orderId, processIndex) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.process = parseInt(processIndex);
+                saveOrders();
+                renderMap();
+            }
+        }
+    
+        // Mover ordem
+        function moveOrder(orderId, direction) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.process = Math.max(0, Math.min(processes.length - 1, order.process + direction));
+                saveOrders();
+                renderMap();
+            }
+        }
+    
+        // Excluir todas as ordens
+        function deleteAllOrders() {
+            orders = [];
+            const ordersRef = ref(database, 'orders');
+            remove(ordersRef);
+            renderMap();
+        }
+    
+        // Remover uma ordem
+        function removeOrder(orderId) {
+            orders = orders.filter(order => order.id !== orderId);
+            saveOrders();
+            renderMap();
+        }
+    
+        // Importar ordens
+        document.getElementById('importButton').onclick = () => {
+            const orderList = document.getElementById('orderList').value;
+            const lines = orderList.split('\n');
+    
+            lines.forEach(line => {
+                const [id, equipment] = line.split('\t');
+                if (id && equipment) {
+                    orders.push({
+                        id: id.trim(),
+                        equipment: equipment.trim(),
+                        process: 0
+                    });
+                }
+            });
+    
+            saveOrders();
+            renderMap();
+            document.getElementById('orderList').value = '';
+        };
+    
+        // Carregar ordens ao iniciar
+        let orders = [];
+        loadOrders();
+    
+        // Garantir que as funções estejam acessíveis
+        window.moveOrder = moveOrder;
+        window.removeOrder = removeOrder;
+        window.changeProcess = changeProcess;
+        window.deleteAllOrders = deleteAllOrders;
+        window.searchOrder = searchOrder;
+    
+        document.getElementById('openPanelButton').onclick = openPanel;
+        document.getElementById('deleteAllButton').onclick = deleteAllOrders;
+        document.getElementById('searchButton').onclick = searchOrder;
     </script>
-
+    
 </body>
 </html>
-
