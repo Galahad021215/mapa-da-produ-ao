@@ -3,290 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de Ordens de Produção</title>
+    <title>Painel de Visualização</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
-            color: #080301;
-            box-sizing: border-box;
+            background-color: #a4a2f1;
+            color: #000000;
+            overflow-x: hidden;
         }
-
-        .container {
-            max-width: 100%;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-
+    
         h1 {
             text-align: center;
+            margin: 10px 0;
             font-size: 2rem;
         }
-
-        .map-container {
+    
+        .clock-container {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 10px;
-            margin: 20px 0;
+            justify-content: center;
+            align-items: center;
+            margin: 2% 0;
         }
-
+    
+        .clock {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 3rem;
+            color: hsl(0, 95%, 50%);
+            background: #000000;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+    
+        .date {
+            font-size: 1.5rem;
+            color: #555;
+            margin-top: 1%;
+            text-align: center;
+        }
+    
+        .container {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr); /* Exatamente 10 colunas com tamanhos iguais */
+            gap: 10px; /* Espaçamento entre as colunas */
+            padding: 20px;
+            width: 100%; /* O contêiner ocupa toda a largura da tela */
+            box-sizing: border-box; /* Inclui padding no cálculo do tamanho */
+        }
+    
         .process-column {
-            flex: 1 1 200px;
-            background-color: #b7ccddba;
+            background-color: #eaeaea;
             padding: 10px;
             border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             text-align: center;
-            min-width: 150px;
-            box-sizing: border-box;
         }
-
+    
         .process-column h3 {
             background-color: #007bff;
             color: #fff;
-            padding: 5px;
-            margin: 0 -10px 10px -10px;
-            border-radius: 5px 5px 0 0;
-            font-size: 1.1rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin: 0 0 10px;
+            font-size: 1rem;
         }
-
+    
         .order-card {
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            box-shadow: 0  2px 2px 2px #02fdd3;
-            text-align: left;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             font-size: 0.9rem;
-            transition: border 0.3s;
         }
-
-        .order-card button {
-            margin: 5px 2px;
-            padding: 5px 10px;
-            font-size: 0.8rem;
-        }
-
-        textarea {
-            width: 100%;
-            height: 120px;
-            margin: 10px 0;
-            resize: none;
-            font-size: 1rem;
-            padding: 5px;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .open-panel-button {
-            margin-top: 20px;
+    
+        .order-card strong {
             display: block;
+            margin-bottom: 5px;
+        }
+    
+        #alarmScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            text-align: center;
+            height: 100%;
+            background-color: blue;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            z-index: 10;
+            display: none;
         }
-
-        .delete-all-button {
-            margin-top: 20px;
-            background-color: #d9534f;
-        }
-
+    
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+            .clock {
+                font-size: 2rem;
             }
-
+    
+            .date {
+                font-size: 1rem;
+            }
+    
+            .process-column h3 {
+                font-size: 0.8rem;
+            }
+    
+            .order-card {
+                font-size: 0.7rem;
+            }
+        }
+    
+        @media (max-width: 480px) {
             h1 {
                 font-size: 1.5rem;
             }
-
-            .process-column {
-                flex: 1 1 100%;
+    
+            .clock {
+                font-size: 1.5rem;
             }
-
-            .order-card {
-                font-size: 0.8rem;
-            }
-
-            textarea {
+    
+            .date {
                 font-size: 0.9rem;
             }
-
-            button {
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 1.2rem;
-            }
-
-            .order-card button {
+    
+            .process-column h3 {
                 font-size: 0.7rem;
             }
-
-            textarea {
-                font-size: 0.8rem;
+    
+            .order-card {
+                font-size: 0.6rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Mapa de Ordens de Produção</h1>
 
-        <!-- Campo de busca -->
-        <label for="searchOp">Buscar Ordem de Produção (O.P.):</label>
-        <input type="text" id="searchOp" placeholder="Digite o número da O.P.">
-        <button onclick="searchOrder()">Buscar</button>
-
-        <!-- Importar Lista -->
-        <label for="orderList">Cole a lista de ordens (O.P. e Equipamento):</label>
-        <textarea id="orderList" placeholder="Cole aqui"></textarea>
-        <button id="importButton">Importar Ordens</button>
-        <button class="open-panel-button" onclick="openPanel()">Abrir Painel de Visualização</button>
-        <button class="delete-all-button" onclick="deleteAllOrders()">Excluir Todas as Ordens</button>
-
-        <!-- Painel de Mapa -->
-        <div class="map-container" id="mapContainer"></div>
+    <div class="clock-container">
+        <div class="clock" id="clock">00:00:00</div>
     </div>
+    <div class="date" id="date">01/01/2025</div>
 
-    <script>
+    <div id="alarmScreen"></div>
+    <div class="container" id="processColumns"></div>
+
+    <script type="module">
+        // Importar as funções necessárias do Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-database.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvGgVaIOFijnW2Fz0JrQ41aIxS6kQcjuk",
+            authDomain: "painel-produ.firebaseapp.com",
+            databaseURL: "https://painel-produ-default-rtdb.firebaseio.com",
+            projectId: "painel-produ",
+            storageBucket: "painel-produ.firebasestorage.app",
+            messagingSenderId: "691465554378",
+            appId: "1:691465554378:web:f5e0f22e5b04a03c342733"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
         const processes = [
-            "Projeto", "Corte/Dobra", "Caldeiraria", "Pintura", "Montagem","Injeção", 
-            "Refrigeração", "Elétrica", "Suporte","Teste", "Finalizado"
+            "Projeto", "Corte/Dobra", "Caldeiraria", "Pintura", "Montagem", "Injeção", 
+            "Refrigeração", "Elétrica", "Suporte", "Teste", "Finalizado"
         ];
 
-        let orders = JSON.parse(localStorage.getItem('orders')) || [];
-
-        function saveOrders() {
-            localStorage.setItem('orders', JSON.stringify(orders));
+        // Carregar ordens do Firebase
+        function loadOrders() {
+            const ordersRef = ref(database, 'orders');
+            get(ordersRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const orders = snapshot.val();
+                    renderColumns(orders);
+                } else {
+                    console.log("Nenhuma ordem encontrada.");
+                }
+            }).catch((error) => {
+                console.error(error);
+            });
         }
 
-        function renderMap() {
-            const mapContainer = document.getElementById('mapContainer');
-            mapContainer.innerHTML = '';
+        // Renderizar colunas de processos
+        function renderColumns(orders) {
+            const container = document.getElementById('processColumns');
+            container.innerHTML = '';
 
             processes.forEach((process, index) => {
                 const column = document.createElement('div');
                 column.className = 'process-column';
                 column.innerHTML = `<h3>${process}</h3>`;
-                const ordersInProcess = orders.filter(order => order.process === index);
+
+                const ordersInProcess = Object.values(orders).filter(order => order.process === index);
 
                 ordersInProcess.forEach(order => {
                     const orderCard = document.createElement('div');
                     orderCard.className = 'order-card';
-                    orderCard.innerHTML = `
-                        <strong>${order.id}</strong><br>
-                        ${order.equipment}<br>
-                        <select onchange="changeProcess('${order.id}', this.value)">
-                            ${processes.map((p, i) => `<option value="${i}" ${order.process === i ? 'selected' : ''}>${p}</option>`).join('')}
-                        </select><br>
-                        <button onclick="moveOrder('${order.id}', -1)">Voltar</button>
-                        <button onclick="moveOrder('${order.id}', 1)">Avançar</button>
-                        <button onclick="removeOrder('${order.id}')">Remover</button>
-                    `;
+                    orderCard.innerHTML = `<strong>${order.id}</strong>`;
                     column.appendChild(orderCard);
                 });
 
-                mapContainer.appendChild(column);
+                container.appendChild(column);
             });
         }
 
-        function searchOrder() {
-            const searchValue = document.getElementById('searchOp').value.trim();
-            if (!searchValue) {
-                alert('Por favor, insira o número da O.P.');
-                return;
-            }
+        // Atualizar o relógio
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const currentTime = `${hours}:${minutes}`;
 
-            const orderCard = Array.from(document.querySelectorAll('.order-card')).find(card => 
-                card.innerHTML.includes(`<strong>${searchValue}</strong>`)
-            );
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
 
-            if (orderCard) {
-                orderCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                orderCard.style.border = '8px solid red';
-                setTimeout(() => orderCard.style.border = '1px solid #ddd', 2000);
-            } else {
-                alert('O.P. não encontrada.');
-            }
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+
+            const daysOfWeek = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+            const weekDay = daysOfWeek[now.getDay()];
+
+            document.getElementById('date').textContent = `${weekDay}, ${day}/${month}/${year}`;
         }
 
-        function changeProcess(orderId, processIndex) {
-            const order = orders.find(o => o.id === orderId);
-            if (order) {
-                order.process = parseInt(processIndex);
-                saveOrders();
-                renderMap();
-            }
-        }
-
-        function moveOrder(orderId, direction) {
-            const order = orders.find(o => o.id === orderId);
-            if (order) {
-                order.process = Math.max(0, Math.min(processes.length - 1, order.process + direction));
-                saveOrders();
-                renderMap();
-            }
-        }
-
-        function openPanel() {
-            window.open('visualizacao.html', '_blank');
-        }
-
-        function deleteAllOrders() {
-            orders = [];
-            localStorage.removeItem('orders');
-            renderMap();
-        }
-
-        function removeOrder(orderId) {
-            orders = orders.filter(order => order.id !== orderId);
-            saveOrders();
-            renderMap();
-        }
-
-        document.getElementById('importButton').onclick = () => {
-            const orderList = document.getElementById('orderList').value;
-            const lines = orderList.split('\n');
-
-            lines.forEach(line => {
-                const [id, equipment] = line.split('\t');
-                if (id && equipment) {
-                    orders.push({
-                        id: id.trim(),
-                        equipment: equipment.trim(),
-                        process: 0
-                    });
-                }
-            });
-
-            saveOrders();
-            renderMap();
-            document.getElementById('orderList').value = '';
-        };
-
-        renderMap();
+        // Iniciar funções
+        setInterval(updateClock, 1000);
+        updateClock();
+        loadOrders();
     </script>
+
 </body>
 </html>
