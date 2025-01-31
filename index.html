@@ -1,1 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Protegida</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #222D32;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            margin-top: 75px;
+            height: auto;
+            background: #1A2226;
+            text-align: center;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+            padding: 25px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .login-key {
+            height: 100px;
+            font-size: 80px;
+            line-height: 100px;
+            background: -webkit-linear-gradient(#27EF9F, #0DB8DE);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-title {
+            margin-top: 15px;
+            font-size: 30px;
+            letter-spacing: 2px;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #ECF0F5;
+        }
+
+        .login-form {
+            margin-top: 25px;
+            text-align: left;
+        }
+
+        input[type=text], input[type=password] {
+            background-color: #1A2226;
+            border: none;
+            border-bottom: 2px solid #0DB8DE;
+            border-top: 0;
+            font-weight: bold;
+            outline: none;
+            margin-bottom: 20px;
+            padding-left: 0;
+            color: #ECF0F5;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 40px;
+        }
+
+        .form-control:focus {
+            border-color: inherit;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+            border-bottom: 2px solid #0DB8DE;
+            background-color: #1A2226;
+            color: #ECF0F5;
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+
+        .form-control-label {
+            font-size: 10px;
+            color: #6C6C6C;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .btn-outline-primary {
+            border-color: #0DB8DE;
+            color: #0DB8DE;
+            border-radius: 0;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            width: 100%;
+            padding: 12px;
+            background-color: transparent;
+            cursor: pointer;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0DB8DE;
+        }
+
+        .login-btm {
+            float: left;
+        }
+
+        .login-button {
+            padding-right: 0;
+            text-align: right;
+            margin-bottom: 25px;
+        }
+
+        .login-text {
+            text-align: left;
+            padding-left: 0;
+            color: #A2A4A4;
+        }
+
+        .loginbttm {
+            padding: 0;
+        }
+
+        /* Responsividade */
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login" class="login-box">
+        <div class="col-lg-12 login-key">
+            <i class="fa fa-key" aria-hidden="true"></i>
+        </div>
+        <div class="col-lg-12 login-title">
+            LOGIN
+        </div>
+
+        <div class="col-lg-12 login-form">
+            <form>
+                <div class="form-group">
+                    <label class="form-control-label">USERNAME</label>
+                    <input type="text" id="username" placeholder="Usuário" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-control-label">PASSWORD</label>
+                    <input type="password" id="password" placeholder="Senha" required>
+                </div>
+
+                <div class="col-lg-12 loginbttm">
+                    <div class="col-lg-6 login-btm login-text">
+                        <!-- Error Message -->
+                    </div>
+                    <div class="col-lg-6 login-btm login-button">
+                        <button type="button" class="btn btn-outline-primary" onclick="checkLogin()">Entrar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="content" style="display:none; text-align:center;">
+        <h2>Bem-vindo!</h2>
+        <p>Você está logado e pode acessar o painel de visualização.</p>
+        <button class="btn btn-outline-primary" onclick="window.location.href='index.html'">Abrir Painel de Visualização</button>
+    </div>
+
+    <script>
+        function checkLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Lógica simples de login
+            if (username === 'admin' && password === '1234') {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } else {
+                alert('Usuário ou senha incorretos!');
+            }
+        }
+    </script>
+
+</body>
+</html>
 
